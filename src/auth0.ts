@@ -11,8 +11,8 @@ import {
   LoginStatus,
   AuthenticationType,
   CognitionResponse,
-  CognitionRequest,
-  CognitionInput
+  CognitionInput,
+  CognitionRequestOverrides
 } from './lib/decisionAi';
 import { ConsoleLogger, Logger, LogLevel } from './lib/logger';
 
@@ -29,10 +29,11 @@ interface ConstructorOptions {
 }
 
 interface DecisionOptions {
-  overrides?: CognitionRequest;
+  overrides?: CognitionRequestOverrides;
   timeout?: number;
 }
 
+/* istanbul ignore next */
 /**
  * @description Requires that its argument is never. This is useful when you want to prove that you have handled
  * all possible cases of an enum in a switch or if block.

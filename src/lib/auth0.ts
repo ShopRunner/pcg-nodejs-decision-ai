@@ -7,17 +7,17 @@
  * @link https://auth0.com/docs/rules/references/context-object
  */
 const enum ContextProtocol {
-    OidcBasicProfile = 'oidc-basic-profile',
-    OidcImplicitProfile = 'oidc-implicit-profile',
-    OAuth2ResourceOwner = 'oauth2-resource-owner',
-    OAuth2ResourceOwnerJwtBearer = 'oauth2-resource-owner-jwt-bearer',
-    OAuth2Password = 'oauth2-password',
-    OAuth2RefreshToken = 'oauth2-refresh-token',
-    SAMLP = 'samlp',
-    WSFed = 'wsfed',
-    WSTrustUsernameMixed = 'wstrust-usernamemixed',
-    Delegation = 'delegation',
-    RedirectCallback = 'redirect-callback',
+  OidcBasicProfile = 'oidc-basic-profile',
+  OidcImplicitProfile = 'oidc-implicit-profile',
+  OAuth2ResourceOwner = 'oauth2-resource-owner',
+  OAuth2ResourceOwnerJwtBearer = 'oauth2-resource-owner-jwt-bearer',
+  OAuth2Password = 'oauth2-password',
+  OAuth2RefreshToken = 'oauth2-refresh-token',
+  SAMLP = 'samlp',
+  WSFed = 'wsfed',
+  WSTrustUsernameMixed = 'wstrust-usernamemixed',
+  Delegation = 'delegation',
+  RedirectCallback = 'redirect-callback',
 }
 
 /**
@@ -25,24 +25,25 @@ const enum ContextProtocol {
  * @link https://auth0.com/docs/rules/references/context-object
  */
 interface Context {
-    sessionID: string,
-    protocol: ContextProtocol,
-    request: {
-        userAgent: string,
-        ip: string,
-        hostname: string,
-        query: string,
-        geoip: {
-            country_code: string,
-            country_code3: string,
-            country_name: string,
-            city_name: string,
-            latitude: string,
-            longitude: string,
-            time_zone: string,
-            continent_code: string,
-        }
+  clientID: string,
+  protocol: ContextProtocol,
+  sessionID: string,
+  request: {
+    hostname: string,
+    ip: string,
+    query: string,
+    userAgent: string,
+    geoip: {
+      city_name: string,
+      continent_code: string,
+      country_code3: string,
+      country_code: string,
+      country_name: string,
+      latitude: string,
+      longitude: string,
+      time_zone: string,
     }
+  }
 }
 
 /**
@@ -50,18 +51,19 @@ interface Context {
  * @link https://auth0.com/docs/rules/references/user-object
  */
 interface User {
-    app_metadata: object,
-    created_at: Date,
-    email: string,
-    last_ip: string,
-    last_login: Date,
-    logins_count: number,
-    last_password_reset: Date,
-    password_set_date: Date,
-    updated_at: Date,
-    username: string,
-    user_id: string,
-    user_metadata: object
+  app_metadata: object,
+  created_at: Date,
+  email: string,
+  last_ip: string,
+  last_login: Date,
+  logins_count: number,
+  last_password_reset: Date,
+  name: string,
+  password_set_date: Date,
+  updated_at: Date,
+  username: string,
+  user_id: string,
+  user_metadata: object
 }
 
 /**
@@ -69,7 +71,7 @@ interface User {
  * @link: https://auth0.com/docs/rules#syntax
  */
 interface Callback {
-    (err: null | Error, user: User, context: Context): void
+  (err: null | Error, user: User, context: Context): void
 }
 
 /**
@@ -77,7 +79,7 @@ interface Callback {
  * @link https://auth0.com/docs/rules
  */
 interface Rule {
-    (user: User, context: Context, callback: Callback): void
+  (user: User, context: Context, callback: Callback): void
 }
 
 export { Context, ContextProtocol, User, Callback, Rule };

@@ -47,7 +47,7 @@ class Ato {
     const privateOptions: PrivateConstructorOptions = options;
 
     const baseUrl = privateOptions.apiUrl || 'https://api.precognitive.io';
-    this._baseUrl = `${baseUrl}/${options.version}/`;
+    this._baseUrl = `${baseUrl}/${options.version}`;
 
     const { userName, password } = options.auth;
     this._authorization = 'Basic ' + Buffer.from(userName + ':' + password, 'utf8').toString('base64');
