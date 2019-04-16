@@ -96,7 +96,7 @@ class Ato {
       const response = await this.decision(input, options);
 
       if (!Ato.isGoodLogin(response)) {
-        rejectErr = new DecisionError(true);
+        rejectErr = new DecisionError();
         this._logger.info('Auto-Decision - reject');
       }
     } catch (err) {

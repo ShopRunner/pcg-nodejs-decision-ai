@@ -1,11 +1,10 @@
 import { SDK_NAME } from './constant';
 
 class DecisionError extends Error {
-  public readonly isFraudulent: boolean;
+  public readonly isFraudulent = true;
 
-  constructor(isFraudulent = true) {
+  constructor() {
     super('Precognitive: Reject Authentication');
-    this.isFraudulent = isFraudulent;
   }
 }
 

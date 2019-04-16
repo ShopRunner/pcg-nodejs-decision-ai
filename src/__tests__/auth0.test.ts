@@ -1,20 +1,20 @@
+import fetchMockModule from 'fetch-mock';
 import _ from 'lodash';
 import fetchMock from '../__mocks__/node-fetch';
-import { Auth0, DecisionError, HttpError } from '../auth0';
+import { Auth0, DecisionError, HttpError } from '../';
 import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel } from '../lib/decisionAi';
 import { ContextProtocol, User, Context } from '../lib/auth0';
-import fetchMockModule = require('fetch-mock');
 
 const date = new Date();
 
 // from https://stackoverflow.com/questions/3143070/javascript-regex-iso-datetime
 const isoDateRegexp = /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/;
 
-function getBaseResponse (decision: DecisionStatus): CognitionResponse {
+function getBaseResponse (decision: DecisionStatus, score = _.random(-200, 200), confidence = _.random(0, 100)): CognitionResponse {
   return {
     decision,
-    score: _.random(-200, 200),
-    confidence: _.random(0, 100),
+    score,
+    confidence,
     signals: [
       'test',
       'test2'
@@ -329,9 +329,16 @@ it('uses custom logger', async () => {
   };
   const defaultOptions = getOptions();
   const auth0 = new Auth0({...config, logger});
-  const response = getBaseResponse(DecisionStatus.allow);
+  const response = getBaseResponse(DecisionStatus.allow, 50, 40);
   fetchMock.postOnce(url, response);
-  await auth0.decision(defaultOptions.user, defaultOptions.context);
+  await auth0.decision(defaultOptions.user, defaultOptions.context, {
+    overrides: {
+      dateTime: new Date('2019-01-01'),
+      login: {
+        passwordUpdateTime: new Date('2019-01-01')
+      }
+    }
+  });
   expect(_.mapValues(logger, (mock) => mock.mock.calls)).toMatchSnapshot();
   expect(fetchMock.done()).toEqual(true);
 });
