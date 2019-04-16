@@ -3,6 +3,7 @@ import fetchMock from '../__mocks__/node-fetch';
 import { Auth0, DecisionError, HttpError } from '../auth0';
 import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel } from '../lib/decisionAi';
 import { ContextProtocol, User, Context } from '../lib/auth0';
+import { Logger } from '../lib/logger';
 
 const date = new Date();
 
@@ -391,5 +392,21 @@ it('allows field override', async () => {
   const expectedBody = getDecisionRecord();
   expectedBody.login.channel = Channel.app;
   expect(JSON.parse(request[1].body)).toEqual(expectedBody);
+  expect(fetchMock.done()).toEqual(true);
+});
+
+it('uses custom logger', async () => {
+  const logger = {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  };
+  const defaultOptions = getOptions();
+  const auth0 = new Auth0({...config, logger});
+  const response = getBaseResponse(DecisionStatus.allow);
+  fetchMock.postOnce(url, response);
+  await auth0.decision(defaultOptions.user, defaultOptions.context);
+  expect(_.mapValues(logger, (mock) => mock.mock.calls)).toMatchSnapshot();
   expect(fetchMock.done()).toEqual(true);
 });

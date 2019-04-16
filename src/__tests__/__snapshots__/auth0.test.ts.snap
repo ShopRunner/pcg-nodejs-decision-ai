@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`uses custom logger 1`] = `
+Object {
+  "debug": Array [
+    Array [
+      "REQUEST BODY - {\\"dateTime\\":\\"2019-04-16T20:41:41.542Z\\",\\"eventId\\":\\"123456789\\",\\"ipAddress\\":\\"127.0.0.1\\",\\"login\\":{\\"userId\\":\\"34294892831981\\",\\"channel\\":\\"web\\",\\"usedCaptcha\\":false,\\"authenticationType\\":\\"password\\",\\"status\\":\\"success\\",\\"passwordUpdateTime\\":\\"2019-04-16T20:41:41.351Z\\"},\\"apiKey\\":\\"kasf8w-afsafs-1asffw\\"}",
+    ],
+    Array [
+      "RESPONSE BODY - {\\"decision\\":\\"allow\\",\\"score\\":-8,\\"confidence\\":22,\\"signals\\":[\\"test\\",\\"test2\\"]}",
+    ],
+  ],
+  "error": Array [],
+  "info": Array [],
+  "warn": Array [],
+}
+`;
