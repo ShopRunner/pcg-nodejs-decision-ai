@@ -3,7 +3,7 @@ import fetchMock from '../__mocks__/node-fetch';
 import { Auth0, DecisionError, HttpError } from '../auth0';
 import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel } from '../lib/decisionAi';
 import { ContextProtocol, User, Context } from '../lib/auth0';
-import { Logger } from '../lib/logger';
+import fetchMockModule = require('fetch-mock');
 
 const date = new Date();
 
@@ -90,6 +90,25 @@ function getDecisionRecord () {
   };
 }
 
+function assertOneCall(calls: fetchMockModule.MockCall[], body: any) {
+  expect(calls.length).toEqual(1);
+
+  // the fetch mock api is asinine
+  // it adds a 'request' property to the array that we don't care about
+  // this strips the property and turns it into a real array.
+  const request = [...calls[0]];
+
+  expect(request).toEqual([url, {
+    body: expect.any(String),
+    headers: {
+      Authorization: basicAuth
+    },
+    method: 'POST',
+    timeout: 5000
+  }]);
+  expect(JSON.parse(request[1].body)).toEqual(body);
+}
+
 const url = 'https://api.precognitive.io/v1/decision/login';
 
 afterEach(fetchMock.restore);
@@ -102,23 +121,7 @@ describe('decision', () => {
     fetchMock.postOnce(url, response);
     const actual = await auth0.decision(defaultOptions.user, defaultOptions.context);
     expect(actual).toEqual(response);
-    const calls = fetchMock.calls();
-    expect(calls.length).toEqual(1);
-
-    // the fetch mock api is asinine
-    // it adds a 'request' property to the array that we don't care about
-    // this strips the property and turns it into a real array.
-    const request = [...calls[0]];
-
-    expect(request).toEqual([url, {
-      body: expect.any(String),
-      headers: {
-        Authorization: basicAuth
-      },
-      method: 'POST',
-      timeout: 5000
-    }]);
-    expect(JSON.parse(request[1].body)).toEqual(getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord());
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -155,23 +158,7 @@ describe('autodecision', () => {
         }
       });
     })).rejects.toBeInstanceOf(DecisionError);
-    const calls = fetchMock.calls();
-    expect(calls.length).toEqual(1);
-
-    // the fetch mock api is asinine
-    // it adds a 'request' property to the array that we don't care about
-    // this strips the property and turns it into a real array.
-    const request = [...calls[0]];
-
-    expect(request).toEqual([url, {
-      body: expect.any(String),
-      headers: {
-        Authorization: basicAuth
-      },
-      method: 'POST',
-      timeout: 5000
-    }]);
-    expect(JSON.parse(request[1].body)).toEqual(getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord());
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -189,23 +176,7 @@ describe('autodecision', () => {
         }
       });
     });
-    const calls = fetchMock.calls();
-    expect(calls.length).toEqual(1);
-
-    // the fetch mock api is asinine
-    // it adds a 'request' property to the array that we don't care about
-    // this strips the property and turns it into a real array.
-    const request = [...calls[0]];
-
-    expect(request).toEqual([url, {
-      body: expect.any(String),
-      headers: {
-        Authorization: basicAuth
-      },
-      method: 'POST',
-      timeout: 5000
-    }]);
-    expect(JSON.parse(request[1].body)).toEqual(getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord());
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -223,23 +194,7 @@ describe('autodecision', () => {
         }
       });
     });
-    const calls = fetchMock.calls();
-    expect(calls.length).toEqual(1);
-
-    // the fetch mock api is asinine
-    // it adds a 'request' property to the array that we don't care about
-    // this strips the property and turns it into a real array.
-    const request = [...calls[0]];
-
-    expect(request).toEqual([url, {
-      body: expect.any(String),
-      headers: {
-        Authorization: basicAuth
-      },
-      method: 'POST',
-      timeout: 5000
-    }]);
-    expect(JSON.parse(request[1].body)).toEqual(getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord());
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -322,25 +277,10 @@ describe('context protocol => authentication type', () => {
       fetchMock.postOnce(url, response);
       const actual = await auth0.decision(defaultOptions.user, defaultOptions.context);
       expect(actual).toEqual(response);
-      const calls = fetchMock.calls();
-      expect(calls.length).toEqual(1);
 
-      // the fetch mock api is asinine
-      // it adds a 'request' property to the array that we don't care about
-      // this strips the property and turns it into a real array.
-      const request = [...calls[0]];
-
-      expect(request).toEqual([url, {
-        body: expect.any(String),
-        headers: {
-          Authorization: basicAuth
-        },
-        method: 'POST',
-        timeout: 5000
-      }]);
       const expectedBody = getDecisionRecord();
       expectedBody.login.authenticationType = authType;
-      expect(JSON.parse(request[1].body)).toEqual(expectedBody);
+      assertOneCall(fetchMock.calls(), expectedBody);;
       expect(fetchMock.done()).toEqual(true);
     });
   });
@@ -373,25 +313,10 @@ it('allows field override', async () => {
     }
   });
   expect(actual).toEqual(response);
-  const calls = fetchMock.calls();
-  expect(calls.length).toEqual(1);
 
-  // the fetch mock api is asinine
-  // it adds a 'request' property to the array that we don't care about
-  // this strips the property and turns it into a real array.
-  const request = [...calls[0]];
-
-  expect(request).toEqual([url, {
-    body: expect.any(String),
-    headers: {
-      Authorization: basicAuth
-    },
-    method: 'POST',
-    timeout: 5000
-  }]);
   const expectedBody = getDecisionRecord();
   expectedBody.login.channel = Channel.app;
-  expect(JSON.parse(request[1].body)).toEqual(expectedBody);
+  assertOneCall(fetchMock.calls(), expectedBody);
   expect(fetchMock.done()).toEqual(true);
 });
 
