@@ -10,11 +10,12 @@
     "baseUrl": ".",
     "paths": {
     },
+    "typeRoots" : ["./node_modules/@types"],
     "lib": [
       "ES2017"
     ],
     "declaration": true,
     "outDir": "./dist"
   },
-  "include": ["./src"]
+  "include": ["./src", "./untyped/fetch-mock.d.ts"]
 }

@@ -3,6 +3,7 @@ import _ from 'lodash';
 import fetchMock from '../__mocks__/node-fetch';
 import { Ato, DecisionError, HttpError } from '../';
 import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel, LoginStatus, CognitionInput } from '../lib/decisionAi';
+import { RequestInit } from 'node-fetch';
 
 const date = new Date();
 
@@ -79,7 +80,7 @@ function assertOneCall(calls: fetchMockModule.MockCall[], body: any) {
     method: 'POST',
     timeout: 5000
   }]);
-  expect(JSON.parse(request[1].body)).toEqual(body);
+  expect(JSON.parse((request[1] as RequestInit).body as any)).toEqual(body);
 }
 
 const url = 'https://api.precognitive.io/v1/decision/login';

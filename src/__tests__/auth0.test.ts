@@ -4,6 +4,7 @@ import fetchMock from '../__mocks__/node-fetch';
 import { Auth0, DecisionError, HttpError } from '../';
 import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel } from '../lib/decisionAi';
 import { ContextProtocol, User, Context } from '../lib/auth0';
+import { RequestInit } from 'node-fetch';
 
 const date = new Date();
 
@@ -96,7 +97,7 @@ function assertOneCall(calls: fetchMockModule.MockCall[], body: any) {
   // the fetch mock api is asinine
   // it adds a 'request' property to the array that we don't care about
   // this strips the property and turns it into a real array.
-  const request = [...calls[0]];
+  const request = [...calls[0]] as typeof calls[0];
 
   expect(request).toEqual([url, {
     body: expect.any(String),
@@ -106,7 +107,7 @@ function assertOneCall(calls: fetchMockModule.MockCall[], body: any) {
     method: 'POST',
     timeout: 5000
   }]);
-  expect(JSON.parse(request[1].body)).toEqual(body);
+  expect(JSON.parse((request[1] as RequestInit).body as any)).toEqual(body);
 }
 
 const url = 'https://api.precognitive.io/v1/decision/login';
