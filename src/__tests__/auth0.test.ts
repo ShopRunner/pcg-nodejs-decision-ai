@@ -232,6 +232,23 @@ describe('autodecision', () => {
     expect(fetchMock.done()).toEqual(true);
   });
 
+  it('allows default override on request failure', async () => {
+    const defaultOptions = getOptions();
+    const auth0 = new Auth0(config);
+    const err = new Error('Mock');
+    fetchMock.postOnce(url, {throws: err});
+    await expect(new Promise((resolve, reject) => {
+      auth0.autoDecision(defaultOptions.user, defaultOptions.context, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }, { defaultResponse: DecisionStatus.reject });
+    })).rejects.toBeInstanceOf(DecisionError);
+    expect(fetchMock.done()).toEqual(true);
+  });
+
   it('allows on unexpected failure', async () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);

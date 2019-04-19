@@ -13,7 +13,8 @@ import {
   AuthenticationType,
   CognitionResponse,
   CognitionInput,
-  CognitionRequestOverrides
+  CognitionRequestOverrides,
+  DecisionStatus
 } from './lib/decisionAi';
 import { ConsoleLogger, Logger, LogLevel } from './lib/logger';
 
@@ -30,6 +31,7 @@ interface ConstructorOptions {
 }
 
 interface DecisionOptions {
+  defaultResponse?: DecisionStatus;
   overrides?: CognitionRequestOverrides;
   timeout?: number;
 }

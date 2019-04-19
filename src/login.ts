@@ -27,6 +27,7 @@ interface PrivateConstructorOptions extends ConstructorOptions {
 }
 
 interface DecisionOptions {
+  defaultResponse?: DecisionStatus;
   timeout?: number;
 }
 
@@ -91,20 +92,21 @@ class Login {
    * prevent the login in this case.
    */
   public async autoDecision(input: CognitionInput, options: DecisionOptions = {}): Promise<void> {
-    let rejectErr: DecisionError | null = null;
+    let isGoodLogin = true;
     try {
       const response = await this.decision(input, options);
 
-      if (!Login.isGoodLogin(response)) {
-        rejectErr = new DecisionError();
+      isGoodLogin = Login.isGoodLogin(response);
+      if (!isGoodLogin) {
         this._logger.info('Auto-Decision - reject');
       }
     } catch (err) {
       this._logger.error(err);
+      isGoodLogin = Login.isGoodLogin({decision: options.defaultResponse || DecisionStatus.allow})
     }
 
-    if (rejectErr) {
-      throw rejectErr;
+    if (!isGoodLogin) {
+      throw new DecisionError();
     }
   }
 
