@@ -108,8 +108,7 @@ class Login {
     }
   }
 
-  public static isGoodLogin(decisionResponse: CognitionResponse): boolean {
-    const {decision} = decisionResponse;
+  public static isGoodLogin({decision}: {decision: DecisionStatus}): boolean {
     return decision === DecisionStatus.allow || decision === DecisionStatus.review;
   }
 
