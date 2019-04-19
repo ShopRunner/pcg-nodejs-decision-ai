@@ -1,2 +1,2 @@
-export * from './ato';
+export * from './login';
 export * from './auth0';
