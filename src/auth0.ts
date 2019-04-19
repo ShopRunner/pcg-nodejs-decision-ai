@@ -1,4 +1,4 @@
-import { Ato } from './login';
+import { Login } from './login';
 import {
   User,
   Context,
@@ -42,7 +42,7 @@ function assertNeverNoop (value: never): void {
 }
 
 class Auth0 {
-  private readonly _base: Ato;
+  private readonly _base: Login;
   private readonly _logger: Logger;
 
   constructor(options: ConstructorOptions) {
@@ -52,7 +52,7 @@ class Auth0 {
       this._logger = new ConsoleLogger(options.logLevel || LogLevel.NONE);
     }
 
-    this._base = new Ato({
+    this._base = new Login({
       ...options,
       logger: this._logger
     });
@@ -87,7 +87,7 @@ class Auth0 {
   }
 
   public static isGoodLogin(decisionResponse: CognitionResponse): boolean {
-    return Ato.isGoodLogin(decisionResponse);
+    return Login.isGoodLogin(decisionResponse);
   }
 
   private _getAuthenticationType(protocol: ContextProtocol): AuthenticationType | undefined {

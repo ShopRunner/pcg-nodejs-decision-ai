@@ -30,7 +30,7 @@ interface DecisionOptions {
   timeout?: number;
 }
 
-class Ato {
+class Login {
   private readonly _apiKey: string;
   private readonly _authorization: string;
   private readonly _logger: Logger;
@@ -95,7 +95,7 @@ class Ato {
     try {
       const response = await this.decision(input, options);
 
-      if (!Ato.isGoodLogin(response)) {
+      if (!Login.isGoodLogin(response)) {
         rejectErr = new DecisionError();
         this._logger.info('Auto-Decision - reject');
       }
@@ -122,5 +122,5 @@ class Ato {
   }
 }
 
-export { Ato };
+export { Login };
 export { HttpError, DecisionError } from './lib/error';

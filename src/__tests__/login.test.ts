@@ -1,7 +1,7 @@
 import fetchMockModule from 'fetch-mock';
 import _ from 'lodash';
 import fetchMock from '../__mocks__/node-fetch';
-import { Ato, DecisionError, HttpError } from '../';
+import { Login, DecisionError, HttpError } from '../';
 import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel, LoginStatus, CognitionInput } from '../lib/decisionAi';
 import { RequestInit } from 'node-fetch';
 
@@ -90,7 +90,7 @@ afterEach(fetchMock.restore);
 describe('decision', () => {
   it('returns decision-ai response', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     const response = getBaseResponse(DecisionStatus.allow);
     fetchMock.postOnce(url, response);
     const actual = await auth0.decision(defaultOptions);
@@ -102,7 +102,7 @@ describe('decision', () => {
 
   it('throws error on http failure', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     fetchMock.postOnce(url, {status: 500, body: JSON.stringify({code: 'failed', message: 'Failed'})});
     await expect(auth0.decision(defaultOptions)).rejects.toBeInstanceOf(HttpError);
     expect(fetchMock.done()).toEqual(true);
@@ -110,7 +110,7 @@ describe('decision', () => {
 
   it('throws error on request failure', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     const err = new Error('Mock');
     fetchMock.postOnce(url, {throws: err});
     await expect(auth0.decision(defaultOptions)).rejects.toBe(err);
@@ -121,7 +121,7 @@ describe('decision', () => {
 describe('autodecision', () => {
   it('disallows if the response is `reject`', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     const response = getBaseResponse(DecisionStatus.reject);
     fetchMock.postOnce(url, response);
     await expect(auth0.autoDecision(defaultOptions)).rejects.toBeInstanceOf(DecisionError);
@@ -132,7 +132,7 @@ describe('autodecision', () => {
 
   it('allows if the response is `review`', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     const response = getBaseResponse(DecisionStatus.review);
     fetchMock.postOnce(url, response);
     await auth0.autoDecision(defaultOptions);
@@ -143,7 +143,7 @@ describe('autodecision', () => {
 
   it('allows if the response is `allow`', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     const response = getBaseResponse(DecisionStatus.allow);
     fetchMock.postOnce(url, response);
     auth0.autoDecision(defaultOptions);
@@ -154,7 +154,7 @@ describe('autodecision', () => {
 
   it('allows on http failure', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     fetchMock.postOnce(url, {status: 500, body: JSON.stringify({code: 'failed', message: 'Failed'})});
     await auth0.autoDecision(defaultOptions);
     expect(fetchMock.done()).toEqual(true);
@@ -162,7 +162,7 @@ describe('autodecision', () => {
 
   it('allows on request failure', async () => {
     const defaultOptions = getOptions();
-    const auth0 = new Ato(config);
+    const auth0 = new Login(config);
     const err = new Error('Mock');
     fetchMock.postOnce(url, {throws: err});
     await auth0.autoDecision(defaultOptions);
@@ -172,15 +172,15 @@ describe('autodecision', () => {
 
 describe('isGoodLogin', () => {
   it('accepts allowed login', () => {
-    expect(Ato.isGoodLogin(getBaseResponse(DecisionStatus.allow))).toEqual(true);
+    expect(Login.isGoodLogin(getBaseResponse(DecisionStatus.allow))).toEqual(true);
   });
 
   it('accepts reviewed login', () => {
-    expect(Ato.isGoodLogin(getBaseResponse(DecisionStatus.review))).toEqual(true);
+    expect(Login.isGoodLogin(getBaseResponse(DecisionStatus.review))).toEqual(true);
   });
 
   it('rejects rejected login', () => {
-    expect(Ato.isGoodLogin(getBaseResponse(DecisionStatus.reject))).toEqual(false);
+    expect(Login.isGoodLogin(getBaseResponse(DecisionStatus.reject))).toEqual(false);
   });
 });
 
@@ -194,7 +194,7 @@ it('uses custom logger', async () => {
   const defaultOptions = getOptions();
   defaultOptions.dateTime = new Date('2019-01-01');
   defaultOptions.login.passwordUpdateTime = defaultOptions.dateTime;
-  const auth0 = new Ato({...config, logger});
+  const auth0 = new Login({...config, logger});
   const response = getBaseResponse(DecisionStatus.allow, 50, 40);
   fetchMock.postOnce(url, response);
   await auth0.decision(defaultOptions);
