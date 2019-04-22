@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es2017",
+    "noImplicitAny": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+    },
+    "typeRoots" : ["./node_modules/@types"],
+    "lib": [
+      "ES2017"
+    ],
+    "declaration": true,
+    "outDir": "./dist"
+  },
+  "include": ["./src", "./untyped/fetch-mock.d.ts"]
+}

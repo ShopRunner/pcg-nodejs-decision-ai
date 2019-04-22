@@ -1,1 +1,1 @@
-# Decision AI Node.js SDK
+# Decision-AI Node.js SDK
