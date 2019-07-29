@@ -1,10 +1,11 @@
+import _ from 'lodash';
 import process from 'process';
 import { Login } from './login';
 import {
   User,
   Context,
-  ContextProtocol,
-  Callback
+  Callback,
+  ContextAuthenticationMethodName
 } from './lib/auth0';
 import {
   ApiVersion,
@@ -12,22 +13,25 @@ import {
   LoginStatus,
   AuthenticationType,
   CognitionResponse,
-  CognitionInput,
   CognitionRequestOverrides,
-  DecisionStatus
+  DecisionStatus,
+  CognitionInput
 } from './lib/decisionAi';
 import { ConsoleLogger, Logger, LogLevel } from './lib/logger';
 
 interface ConstructorOptions {
-  apiKey: string;
-  version: ApiVersion;
+  apiKey: string,
+  version: ApiVersion,
   auth: {
-    userName: string;
-    password: string;
-  }
-  logger?: Logger;
-  logLevel?: LogLevel;
-  timeout?: number;
+    userName: string,
+    password: string
+  },
+  getUserId?: {
+    (user: User, context: Context): string
+  },
+  timeout?: number,
+  logger?: Logger,
+  logLevel?: LogLevel
 }
 
 interface DecisionOptions {
@@ -36,16 +40,9 @@ interface DecisionOptions {
   timeout?: number;
 }
 
-/* istanbul ignore next */
-/**
- * @description Requires that its argument is never. This is useful when you want to prove that you have handled
- * all possible cases of an enum in a switch or if block.
- */
-function assertNeverNoop (value: never): void {
-}
-
 class Auth0 {
   private readonly _base: Login;
+  private readonly _getUserIdOption?: (user: User, context: Context) => string;
   private readonly _logger: Logger;
 
   constructor(options: ConstructorOptions) {
@@ -54,6 +51,8 @@ class Auth0 {
     } else {
       this._logger = new ConsoleLogger(options.logLevel || LogLevel.NONE);
     }
+
+    this._getUserIdOption = options.getUserId;
 
     this._base = new Login({
       ...options,
@@ -93,48 +92,81 @@ class Auth0 {
     return Login.isGoodLogin(decisionResponse);
   }
 
-  private _getAuthenticationType(protocol: ContextProtocol): AuthenticationType | undefined {
-    switch (protocol) {
-      case ContextProtocol.OidcBasicProfile:
-      case ContextProtocol.OidcImplicitProfile:
-      case ContextProtocol.OAuth2ResourceOwner:
-      case ContextProtocol.OAuth2Password:
-        return AuthenticationType.password;
-      case ContextProtocol.SAMLP:
-      case ContextProtocol.WSFed:
-      case ContextProtocol.WSTrustUsernameMixed:
-        return AuthenticationType.single_sign_on;
-      case ContextProtocol.OAuth2RefreshToken:
-      case ContextProtocol.OAuth2ResourceOwnerJwtBearer:
-        return AuthenticationType.key;
-      case ContextProtocol.Delegation:
-      case ContextProtocol.RedirectCallback:
-        return undefined;
-      default:
-        assertNeverNoop(protocol);
-        this._logger.warn('Unable to determine AuthenticationType');
-        return undefined;
-        // @todo support `other`
-        // return AuthenticationType.other;
+  private _getUserId(user: User, context: Context): string {
+    if (this._getUserIdOption) {
+      return this._getUserIdOption(user, context);
+    } else {
+      return user.user_id;
     }
   }
 
+  private _getAuthenticationType(user: User, context: Context): AuthenticationType | null {
+    const latestAuthMethod = _.last(_.sortBy(context.authentication.methods, 'timestamp'));
+
+    if (typeof latestAuthMethod === 'undefined') {
+      return null;
+    } else if (latestAuthMethod.name === ContextAuthenticationMethodName.mfa) {
+      return AuthenticationType.two_factor;
+    } else if (latestAuthMethod.name === ContextAuthenticationMethodName.federated) {
+      const identity = _.find(user.identities, {connection: context.connection});
+      // check social VS sso
+      if (typeof identity === 'undefined' || identity.isSocial) {
+        return AuthenticationType.social_sign_on;
+      } else {
+        return AuthenticationType.single_sign_on;
+      }
+    } else if (_.get(context, 'sso.current_clients', []).length > 0) {
+      return AuthenticationType.client_storage;
+    } else {
+      // Currently password-less still falls to password
+      return AuthenticationType.password;
+    }
+  }
+
+  private _getChannel(user: User, context: Context): Channel {
+    return Channel.web;
+  }
+
   private _buildBody(user: User, context: Context, options: DecisionOptions): CognitionInput {
-    const {overrides: {login = {}, ...overrides} = {}} = options;
-    return {
-      eventId: context.sessionID,
+    const request: CognitionInput = {
+      _custom: {
+        // Include Auth0 Specific data points
+        auth0: {
+          sdkVersion: '1.0',
+          user: {
+            updated: user.updated_at,
+            fullName: user.name,
+            lastName: user.family_name,
+            firstName: user.given_name,
+            username: user.username,
+            email: user.email,
+            emailVerified: user.email_verified || false,
+            phoneNumber: user.phone_number,
+            phoneNumberVerified: user.phone_verified || false,
+            blocked: user.blocked || false
+          },
+          context: {
+            authenticationMethods: context.authentication.methods,
+            stats: context.stats,
+            geoIp: context.request.geoip,
+            primaryUser: context.primaryUser,
+            ssoCurrentClients: context.sso.current_clients
+          }
+        }
+      },
+      eventId: _.get(context.request.query, 'cognition_event_id'),
       ipAddress: context.request.ip,
-      ...overrides,
       login: {
-        userId: user.user_id,
-        channel: Channel.web, // @todo in future allow for mapping
+        userId: this._getUserId(user, context),
+        channel: this._getChannel(user, context),
         usedCaptcha: false,
-        authenticationType: this._getAuthenticationType(context.protocol),
+        usedRememberMe: false,
+        authenticationType: this._getAuthenticationType(user, context),
         status: LoginStatus.success,
-        passwordUpdateTime: user.last_password_reset,
-        ...login
+        passwordUpdateTime: user.last_password_reset
       }
     };
+    return _.merge(request, _.get(options, 'overrides', {}));
   }
 }
 

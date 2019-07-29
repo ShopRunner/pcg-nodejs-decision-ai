@@ -27,49 +27,34 @@ const enum AuthenticationType {
   password = 'password',
   two_factor = 'two_factor',
   single_sign_on = 'single_sign_on',
-  key = 'key',
-
-  other = 'other' // @todo add to API
+  social_sign_on = 'social_sign_on',
+  key = 'key'
 }
 
 interface CognitionResponse {
   score: number,
   confidence: number,
   decision: DecisionStatus,
+  tokenId: string,
   signals: Array<string>
 }
 
-interface CognitionRequestOverrides {
-  eventId?: string;
-  dateTime?: Date;
-  ipAddress?: string;
-  _custom?: object;
-  clientPayload?: object;
-  login?: {
-    userId?: string;
-    channel?: Channel;
-    usedCaptcha?: boolean;
-    authenticationType?: AuthenticationType | null;
-    status?: LoginStatus;
-    passwordUpdateTime?: Date;
-    userNameUpdateTime?: Date;
-  };
-}
-
 interface CognitionInput extends CognitionRequestOverrides {
-  eventId: string;
+  eventId?: string;
   dateTime?: Date;
   ipAddress: string;
   login: {
     userId: string;
     channel: Channel;
     usedCaptcha: boolean;
+    usedRememberMe?: boolean;
     authenticationType?: AuthenticationType | null;
     status: LoginStatus;
     passwordUpdateTime: Date;
     userNameUpdateTime?: Date;
   };
 }
+type CognitionRequestOverrides = Readonly<CognitionInput>;
 
 interface CognitionRequest extends CognitionInput {
   apiKey: string;

@@ -1,6 +1,9 @@
 // Auth0 Types, Interfaces and other structures
 // ---------------------------------------------------
 
+type MetaData = {
+  [s: string]: string
+}
 
 /**
  * @description Auth0 authentication protocol potential values
@@ -20,30 +23,82 @@ const enum ContextProtocol {
   RedirectCallback = 'redirect-callback',
 }
 
+export const enum ContextAuthenticationMethodName {
+  federated = 'federated',
+  pwd = 'pwd',
+  sms = 'sms',
+  email = 'email',
+  mfa = 'mfa'
+}
+
+type ContextAuthenticationMethod = {
+  name: ContextAuthenticationMethodName,
+  timestamp: number
+}
+
 /**
  * @description Auth0 Context Object, passed into rules
  * @link https://auth0.com/docs/rules/references/context-object
  */
 interface Context {
+  tenant: string,
   clientID: string,
+  clientName: string,
+  clientMetadata: MetaData,
+  connectionID: string,
+  connection: string,
+  connectionStrategy: string,
+  connectionOptions: {
+    tenant_domain: string,
+    domain_aliases: Array<string>
+  },
+  connectionMetadata: MetaData,
+  samlConfiguration: object,
   protocol: ContextProtocol,
+  stats: object,
+  sso: {
+    with_auth0: boolean,
+    with_dbconn: boolean,
+    current_clients?: Array<string>
+  },
+  accessToken: {
+    scope?: Array<string>
+  },
+  idToken: object,
+  original_protocol: string,
+  multifactor: object,
   sessionID: string,
+  authentication: {
+    methods: Array<ContextAuthenticationMethod>
+  },
+  primaryUser: string,
   request: {
-    hostname: string,
-    ip: string,
-    query: string,
     userAgent: string,
+    ip: string,
+    hostname: string,
+    query: {
+      cognition_event_id: string
+    },
+    body: object,
     geoip: {
-      city_name: string,
-      continent_code: string,
-      country_code3: string,
       country_code: string,
+      country_code3: string,
       country_name: string,
+      city_name: string,
       latitude: string,
       longitude: string,
       time_zone: string,
+      continent_code: string,
     }
-  }
+  },
+  authorization: { roles: Array<string> }
+}
+
+type UserIdentity = {
+  connection: string,
+  isSocial: boolean,
+  provider: string,
+  user_id: string
 }
 
 /**
@@ -51,19 +106,25 @@ interface Context {
  * @link https://auth0.com/docs/rules/references/user-object
  */
 interface User {
-  app_metadata: object,
+  app_metadata: MetaData,
+  blocked: boolean,
   created_at: Date,
   email: string,
-  last_ip: string,
-  last_login: Date,
-  logins_count: number,
-  last_password_reset: Date,
+  email_verified: boolean,
+  identities: Array<UserIdentity>
+  multifactor: Array<string>,
+  family_name: string,
+  given_name: string,
   name: string,
-  password_set_date: Date,
+  nickname: string,
+  last_password_reset: Date,
+  phone_number: string,
+  phone_verified: boolean,
+  picture: string,
   updated_at: Date,
-  username: string,
   user_id: string,
-  user_metadata: object
+  user_metadata: MetaData
+  username: string,
 }
 
 /**
