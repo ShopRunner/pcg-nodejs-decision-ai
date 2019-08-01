@@ -2,12 +2,10 @@ import fetchMockModule from 'fetch-mock';
 import _ from 'lodash';
 import fetchMock from '../__mocks__/node-fetch';
 import { Auth0, DecisionError, HttpError } from '../';
-import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel, CognitionRequest, CognitionInput, LoginStatus } from '../lib/decisionAi';
-import { ContextProtocol, User, Context } from '../lib/auth0';
+import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel, CognitionRequest, LoginStatus } from '../lib/decisionAi';
+import { User, Context } from '../lib/auth0';
 import { RequestInit } from 'node-fetch';
 import { getPasswordLogin } from './stubs/auth0';
-
-const date = new Date();
 
 // from https://stackoverflow.com/questions/3143070/javascript-regex-iso-datetime
 const isoDateRegexp = /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/;
