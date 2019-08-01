@@ -15,6 +15,7 @@ function getBaseResponse (decision: DecisionStatus, score = _.random(-200, 200),
     decision,
     score,
     confidence,
+    tokenId: '4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc',
     signals: [
       'test',
       'test2'

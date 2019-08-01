@@ -39,7 +39,7 @@ interface CognitionResponse {
   signals: Array<string>
 }
 
-interface CognitionInput extends CognitionRequestOverrides {
+interface CognitionInput {
   eventId?: string;
   dateTime?: Date;
   ipAddress: string;
@@ -50,11 +50,16 @@ interface CognitionInput extends CognitionRequestOverrides {
     usedRememberMe?: boolean;
     authenticationType?: AuthenticationType | null;
     status: LoginStatus;
-    passwordUpdateTime: Date;
+    passwordUpdateTime?: Date;
     userNameUpdateTime?: Date;
   };
+  _custom: any;
 }
-type CognitionRequestOverrides = Readonly<CognitionInput>;
+
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+interface CognitionRequestOverrides extends Partial<Omit<CognitionInput, 'login'>> {
+  login: Partial<CognitionInput['login']>
+}
 
 interface CognitionRequest extends CognitionInput {
   apiKey: string;

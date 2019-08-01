@@ -4,10 +4,10 @@ exports[`uses custom logger 1`] = `
 Object {
   "debug": Array [
     Array [
-      "REQUEST BODY - {\\"dateTime\\":\\"2019-01-01T00:00:00.000Z\\",\\"eventId\\":\\"123456789\\",\\"ipAddress\\":\\"127.0.0.1\\",\\"login\\":{\\"userId\\":\\"34294892831981\\",\\"channel\\":\\"web\\",\\"usedCaptcha\\":false,\\"authenticationType\\":\\"password\\",\\"status\\":\\"success\\",\\"passwordUpdateTime\\":\\"2019-01-01T00:00:00.000Z\\"},\\"apiKey\\":\\"kasf8w-afsafs-1asffw\\"}",
+      "REQUEST BODY - {\\"dateTime\\":\\"2019-01-01T00:00:00.000Z\\",\\"_custom\\":{\\"auth0\\":{\\"sdkVersion\\":\\"1.0\\",\\"user\\":{\\"updated\\":\\"2019-08-01T21:21:30.433Z\\",\\"fullName\\":\\"jsmith2.precognitive@gmail.com\\",\\"email\\":\\"jsmith2.precognitive@gmail.com\\",\\"emailVerified\\":false,\\"phoneNumberVerified\\":false,\\"blocked\\":false},\\"context\\":{\\"authenticationMethods\\":[{\\"name\\":\\"pwd\\",\\"timestamp\\":1558032612724}],\\"stats\\":{\\"loginsCount\\":8},\\"geoIp\\":{\\"country_code\\":\\"US\\",\\"country_code3\\":\\"USA\\",\\"country_name\\":\\"United States\\",\\"city_name\\":\\"Conshohocken\\",\\"latitude\\":40.0825,\\"longitude\\":-75.3044,\\"time_zone\\":\\"America/New_York\\",\\"continent_code\\":\\"NA\\"}}}},\\"eventId\\":\\"55d8ee1d-2dd3-4aec-95e7-15c80aa101f7\\",\\"ipAddress\\":\\"127.0.0.1\\",\\"login\\":{\\"userId\\":\\"64a454c35ac1932e62e6\\",\\"channel\\":\\"web\\",\\"usedCaptcha\\":false,\\"usedRememberMe\\":false,\\"authenticationType\\":\\"password\\",\\"status\\":\\"success\\",\\"passwordUpdateTime\\":\\"2019-01-01T00:00:00.000Z\\"},\\"apiKey\\":\\"kasf8w-afsafs-1asffw\\"}",
     ],
     Array [
-      "RESPONSE BODY - {\\"decision\\":\\"allow\\",\\"score\\":50,\\"confidence\\":40,\\"signals\\":[\\"test\\",\\"test2\\"]}",
+      "RESPONSE BODY - {\\"decision\\":\\"allow\\",\\"score\\":50,\\"confidence\\":40,\\"tokenId\\":\\"4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc\\",\\"signals\\":[\\"test\\",\\"test2\\"]}",
     ],
   ],
   "error": Array [],

@@ -4,8 +4,7 @@ import { Login } from './login';
 import {
   User,
   Context,
-  Callback,
-  ContextAuthenticationMethodName
+  Callback
 } from './lib/auth0';
 import {
   ApiVersion,
@@ -100,14 +99,14 @@ class Auth0 {
     }
   }
 
-  private _getAuthenticationType(user: User, context: Context): AuthenticationType | null {
+  private _getAuthenticationType(user: User, context: Context): AuthenticationType | undefined {
     const latestAuthMethod = _.last(_.sortBy(context.authentication.methods, 'timestamp'));
 
     if (typeof latestAuthMethod === 'undefined') {
-      return null;
-    } else if (latestAuthMethod.name === ContextAuthenticationMethodName.mfa) {
+      return undefined;
+    } else if (latestAuthMethod.name === 'mfa') {
       return AuthenticationType.two_factor;
-    } else if (latestAuthMethod.name === ContextAuthenticationMethodName.federated) {
+    } else if (latestAuthMethod.name === 'federated') {
       const identity = _.find(user.identities, {connection: context.connection});
       // check social VS sso
       if (typeof identity === 'undefined' || identity.isSocial) {
