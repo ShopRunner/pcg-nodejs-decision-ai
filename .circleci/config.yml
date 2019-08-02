@@ -21,7 +21,19 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm run test
-
+      - persist_to_workspace:
+          root: .
+          paths: '*'
+  publish:
+    executor: node-12
+    environment:
+      npm_config_ignore_scripts: true
+    steps:
+      - attach_workspace:
+          at: .
+      - run: echo '//npm.pkg.github.com/:_authToken=${GPR_TOKEN}' > ~/.npmrc
+      - run: npm version from-git
+      - run: npm publish
 workflows:
   version: 2
   test:
@@ -32,3 +44,5 @@ workflows:
       - test:
           name: 'test-12'
           executor: node-12
+      - publish:
+          context: package-publish
