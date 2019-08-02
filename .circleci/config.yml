@@ -29,7 +29,7 @@ jobs:
       - attach_workspace:
           at: .
       - run: echo '//npm.pkg.github.com/:_authToken=${GPR_TOKEN}' > ~/.npmrc
-      - run: npm version --no-git-tag-version 0.0.3
+      - run: npm version --no-git-tag-version 0.0.4
       - run: npm publish
 workflows:
   version: 2
