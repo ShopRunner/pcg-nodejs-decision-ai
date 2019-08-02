@@ -17,5 +17,6 @@
     "declaration": true,
     "outDir": "./dist"
   },
-  "include": ["./src", "./untyped/fetch-mock.d.ts"]
+  "include": ["./src", "./untyped/fetch-mock.d.ts"],
+  "exclude": ["**/__tests__/**", "**/__mocks__/**"]
 }
