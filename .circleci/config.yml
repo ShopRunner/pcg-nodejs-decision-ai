@@ -41,7 +41,7 @@ workflows:
       - test:
           name: 'test-12'
           executor: node-12
-          steps:
+          post-steps:
             - persist_to_workspace:
                 root: .
                 paths: '*'
