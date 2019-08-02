@@ -1,0 +1,34 @@
+version: 2.1
+
+executors:
+  # Note that these are the public node images, not our wrapped ones
+  node-10:
+    docker:
+      - image: node:10
+  node-12:
+    docker:
+      - image: node:12
+
+jobs:
+  test:
+    parameters:
+      executor:
+        type: executor
+    executor: << parameters.executor >>
+    steps:
+      - add_ssh_keys
+      - checkout
+      - run: npm install
+      - run: npm run build
+      - run: npm run test
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test:
+          name: 'test-10'
+          executor: node-10
+      - test:
+          name: 'test-12'
+          executor: node-12
