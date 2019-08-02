@@ -46,3 +46,6 @@ workflows:
           executor: node-12
       - publish:
           context: package-publish
+          requires:
+            - test-10
+            - test-12
