@@ -58,6 +58,6 @@
     "preset": "ts-jest"
   },
   "files": [
-    "./dist"
+    "dist"
   ]
 }
