@@ -1,7 +1,7 @@
 import { SDK_NAME } from './constant';
 
 class DecisionError extends Error {
-  public readonly isFraudulent = true;
+  public readonly isFraud = true;
 
   constructor() {
     super('Precognitive: Reject Authentication');

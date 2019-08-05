@@ -45,7 +45,9 @@
       "!**/__tests__/**",
       "!**/bin/*"
     ],
-    "modulePathIgnorePatterns": ["<rootDir>/dist"],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/dist"
+    ],
     "testEnvironment": "node",
     "testMatch": [
       "**/__tests__/**/*.test.ts?(x)"

@@ -2,11 +2,10 @@ import fetchMockModule from 'fetch-mock';
 import _ from 'lodash';
 import fetchMock from '../__mocks__/node-fetch';
 import { Auth0, DecisionError, HttpError } from '../';
-import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel } from '../lib/decisionAi';
-import { ContextProtocol, User, Context } from '../lib/auth0';
+import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel, CognitionRequest, LoginStatus } from '../lib/decisionAi';
+import { User, Context } from '../lib/auth0';
 import { RequestInit } from 'node-fetch';
-
-const date = new Date();
+import { getPasswordLogin } from './stubs/auth0';
 
 // from https://stackoverflow.com/questions/3143070/javascript-regex-iso-datetime
 const isoDateRegexp = /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/;
@@ -16,6 +15,7 @@ function getBaseResponse (decision: DecisionStatus, score = _.random(-200, 200),
     decision,
     score,
     confidence,
+    tokenId: '4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc',
     signals: [
       'test',
       'test2'
@@ -33,61 +33,67 @@ const config = {
 };
 const basicAuth = 'Basic dGVzdDp0ZXN0LXB3';
 
-function getOptions (): {user: User, context: Context} {
+const updated = new Date();
+
+interface Login {
+  user: User;
+  context: Context;
+}
+function getOptions (): Login {
+  const passwordLogin = getPasswordLogin();
   return {
+    ...passwordLogin,
     user: {
-      name: 'test',
-      app_metadata: {},
-      email: "test@example.com",
-      last_ip: "127.0.0.1",
-      last_login: date,
-      logins_count: 3,
-      last_password_reset: date,
-      password_set_date: date,
-      created_at: date,
-      updated_at: date,
-      username: "test-example",
-      user_id: "34294892831981",
-      user_metadata: {}
-    },
-    context: {
-      clientID: '123456789',
-      sessionID: '123456789',
-      protocol: ContextProtocol.OidcBasicProfile,
-      request: {
-        userAgent: 'test',
-        ip: '127.0.0.1',
-        hostname: 'example.com',
-        query: '',
-        geoip: {
-          country_code: 'us',
-          country_code3: '',
-          country_name: 'murica',
-          city_name: 'springville',
-          latitude: '0.00',
-          longitude: '0.00',
-          time_zone: '-400',
-          continent_code: 'na',
-        }
-      }
+      ...passwordLogin.user,
+      updated_at: updated
     }
-  }
+  };
 }
 
-function getDecisionRecord () {
+function getDecisionRecord ({ context, user }: Login): CognitionRequest {
   return {
     apiKey: config.apiKey,
     dateTime: expect.stringMatching(isoDateRegexp),
-    eventId: '123456789',
+    eventId: context.request.query.cognition_event_id,
     ipAddress: '127.0.0.1',
     login: {
-      authenticationType: 'password',
-      channel: 'web',
-      passwordUpdateTime: date.toISOString(),
-      status: 'success',
+      authenticationType: AuthenticationType.password,
+      channel: Channel.web,
+      status: LoginStatus.success,
       usedCaptcha: false,
-      userId: '34294892831981',
+      usedRememberMe: false,
+      userId: user.user_id,
     },
+    _custom: {
+      auth0: {
+        context: {
+          authenticationMethods: context.authentication.methods,
+          geoIp: {
+            city_name: 'Conshohocken',
+            continent_code: 'NA',
+            country_code: 'US',
+            country_code3: 'USA',
+            country_name: 'United States',
+            latitude: 40.0825,
+            longitude: -75.3044,
+            time_zone: 'America/New_York',
+          },
+          ssoCurrentClients: context.sso.current_clients,
+          stats: {
+            loginsCount: 8,
+          }
+        },
+        sdkVersion: '1.0',
+        user: {
+          blocked: false,
+          email: 'jsmith2.precognitive@gmail.com',
+          emailVerified: false,
+          fullName: 'jsmith2.precognitive@gmail.com',
+          phoneNumberVerified: false,
+          updated: updated.toISOString(),
+        }
+      }
+    }
   };
 }
 
@@ -116,13 +122,13 @@ afterEach(fetchMock.restore);
 
 describe('decision', () => {
   it('returns decision-ai response', async () => {
-    const defaultOptions = getOptions();
+    const login = getOptions();
     const auth0 = new Auth0(config);
     const response = getBaseResponse(DecisionStatus.allow);
     fetchMock.postOnce(url, response);
-    const actual = await auth0.decision(defaultOptions.user, defaultOptions.context);
+    const actual = await auth0.decision(login.user, login.context);
     expect(actual).toEqual(response);
-    assertOneCall(fetchMock.calls(), getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord(login));
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -159,7 +165,7 @@ describe('autodecision', () => {
         }
       });
     })).rejects.toBeInstanceOf(DecisionError);
-    assertOneCall(fetchMock.calls(), getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord(defaultOptions));
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -177,7 +183,7 @@ describe('autodecision', () => {
         }
       });
     });
-    assertOneCall(fetchMock.calls(), getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord(defaultOptions));
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -195,7 +201,7 @@ describe('autodecision', () => {
         }
       });
     });
-    assertOneCall(fetchMock.calls(), getDecisionRecord());
+    assertOneCall(fetchMock.calls(), getDecisionRecord(defaultOptions));
     expect(fetchMock.done()).toEqual(true);
   });
 
@@ -273,33 +279,83 @@ describe('autodecision', () => {
 });
 
 describe('context protocol => authentication type', () => {
-  _.forEach([
-    [ContextProtocol.OidcBasicProfile, AuthenticationType.password],
-    [ContextProtocol.OidcImplicitProfile, AuthenticationType.password],
-    [ContextProtocol.OAuth2ResourceOwner, AuthenticationType.password],
-    [ContextProtocol.OAuth2Password, AuthenticationType.password],
-    [ContextProtocol.SAMLP, AuthenticationType.single_sign_on],
-    [ContextProtocol.WSFed, AuthenticationType.single_sign_on],
-    [ContextProtocol.WSTrustUsernameMixed, AuthenticationType.single_sign_on],
-    [ContextProtocol.OAuth2RefreshToken, AuthenticationType.key],
-    [ContextProtocol.OAuth2ResourceOwnerJwtBearer, AuthenticationType.key],
-    [ContextProtocol.Delegation, undefined],
-    [ContextProtocol.RedirectCallback, undefined],
-    ['invalid', undefined],
-  ] as [ContextProtocol, AuthenticationType][], ([contextProtocol, authType]) => {
-    it(`converts '${contextProtocol}' into '${authType}'`, async () => {
-      const defaultOptions = getOptions();
-      defaultOptions.context.protocol = contextProtocol;
-      const auth0 = new Auth0(config);
-      const response = getBaseResponse(DecisionStatus.allow);
-      fetchMock.postOnce(url, response);
-      const actual = await auth0.decision(defaultOptions.user, defaultOptions.context);
-      expect(actual).toEqual(response);
+  const timestamp = Date.now();
+  async function testAuthType (authType: AuthenticationType | undefined, transformInput: (login: Login) => Login) {
+    const data = transformInput(getOptions());
+    const auth0 = new Auth0(config);
+    const response = getBaseResponse(DecisionStatus.allow);
+    fetchMock.postOnce(url, response);
+    const actual = await auth0.decision(data.user, data.context);
+    expect(actual).toEqual(response);
 
-      const expectedBody = getDecisionRecord();
+    const expectedBody = getDecisionRecord(data);
+    if (authType) {
       expectedBody.login.authenticationType = authType;
-      assertOneCall(fetchMock.calls(), expectedBody);;
-      expect(fetchMock.done()).toEqual(true);
+    } else {
+      delete expectedBody.login.authenticationType; // gets removed by JSON stringify
+    }
+    assertOneCall(fetchMock.calls(), expectedBody);;
+    expect(fetchMock.done()).toEqual(true);
+  }
+
+  it('transforms undefined', async () => {
+    await testAuthType(undefined, (l) => {
+      l.context.authentication.methods = [];
+      return l;
+    });
+  });
+
+  it('transforms two factor', async () => {
+    await testAuthType(AuthenticationType.two_factor, (l) => {
+      l.context.authentication.methods = [{ timestamp, name: 'mfa' }];
+      return l;
+    });
+  });
+
+  it('transforms social sign on from undefined', async () => {
+    await testAuthType(AuthenticationType.social_sign_on, (l) => {
+      l.context.authentication.methods = [{ timestamp, name: 'federated' }];
+      l.user.identities = [];
+      return l;
+    })
+  });
+
+  it('transforms social sign on from identity', async () => {
+    await testAuthType(AuthenticationType.social_sign_on, (l) => {
+      l.context.authentication.methods = [{ timestamp, name: 'federated' }];
+      l.user.identities = [{
+        provider: 'google-oauth2',
+        user_id: '108493928311127651660',
+        connection: l.context.connection,
+        isSocial: true
+      }];
+      return l;
+    });
+  });
+
+  it('transforms single sign on', async () => {
+    await testAuthType(AuthenticationType.single_sign_on, (l) => {
+      l.context.authentication.methods = [{ timestamp, name: 'federated' }];
+      l.user.identities = [{
+        provider: 'google-oauth2',
+        user_id: '108493928311127651660',
+        connection: l.context.connection,
+        isSocial: false
+      }];
+      return l;
+    });
+  });
+
+  it('transforms client storage', async () => {
+    await testAuthType(AuthenticationType.client_storage, (l) => {
+      l.context.sso.current_clients = ['foo'];
+      return l;
+    });
+  })
+
+  it('transforms password', async () => {
+    await testAuthType(AuthenticationType.password, (l) => {
+      return l;
     });
   });
 });
@@ -332,7 +388,7 @@ it('allows field override', async () => {
   });
   expect(actual).toEqual(response);
 
-  const expectedBody = getDecisionRecord();
+  const expectedBody = getDecisionRecord(defaultOptions);
   expectedBody.login.channel = Channel.app;
   assertOneCall(fetchMock.calls(), expectedBody);
   expect(fetchMock.done()).toEqual(true);

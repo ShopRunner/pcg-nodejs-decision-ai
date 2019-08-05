@@ -27,48 +27,38 @@ const enum AuthenticationType {
   password = 'password',
   two_factor = 'two_factor',
   single_sign_on = 'single_sign_on',
-  key = 'key',
-
-  other = 'other' // @todo add to API
+  social_sign_on = 'social_sign_on',
+  key = 'key'
 }
 
 interface CognitionResponse {
   score: number,
   confidence: number,
   decision: DecisionStatus,
+  tokenId: string,
   signals: Array<string>
 }
 
-interface CognitionRequestOverrides {
+interface CognitionInput {
   eventId?: string;
-  dateTime?: Date;
-  ipAddress?: string;
-  _custom?: object;
-  clientPayload?: object;
-  login?: {
-    userId?: string;
-    channel?: Channel;
-    usedCaptcha?: boolean;
-    authenticationType?: AuthenticationType | null;
-    status?: LoginStatus;
-    passwordUpdateTime?: Date;
-    userNameUpdateTime?: Date;
-  };
-}
-
-interface CognitionInput extends CognitionRequestOverrides {
-  eventId: string;
   dateTime?: Date;
   ipAddress: string;
   login: {
     userId: string;
     channel: Channel;
     usedCaptcha: boolean;
+    usedRememberMe?: boolean;
     authenticationType?: AuthenticationType | null;
     status: LoginStatus;
-    passwordUpdateTime: Date;
+    passwordUpdateTime?: Date;
     userNameUpdateTime?: Date;
   };
+  _custom: any;
+}
+
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+interface CognitionRequestOverrides extends Partial<Omit<CognitionInput, 'login'>> {
+  login: Partial<CognitionInput['login']>
 }
 
 interface CognitionRequest extends CognitionInput {

@@ -1,23 +1,35 @@
 // Auth0 Types, Interfaces and other structures
 // ---------------------------------------------------
 
+type MetaData = {
+  [s: string]: string
+}
 
 /**
  * @description Auth0 authentication protocol potential values
  * @link https://auth0.com/docs/rules/references/context-object
  */
-const enum ContextProtocol {
-  OidcBasicProfile = 'oidc-basic-profile',
-  OidcImplicitProfile = 'oidc-implicit-profile',
-  OAuth2ResourceOwner = 'oauth2-resource-owner',
-  OAuth2ResourceOwnerJwtBearer = 'oauth2-resource-owner-jwt-bearer',
-  OAuth2Password = 'oauth2-password',
-  OAuth2RefreshToken = 'oauth2-refresh-token',
-  SAMLP = 'samlp',
-  WSFed = 'wsfed',
-  WSTrustUsernameMixed = 'wstrust-usernamemixed',
-  Delegation = 'delegation',
-  RedirectCallback = 'redirect-callback',
+type ContextProtocol = 'oidc-basic-profile'
+  | 'oidc-implicit-profile'
+  | 'oauth2-resource-owner'
+  | 'oauth2-resource-owner-jwt-bearer'
+  | 'oauth2-password'
+  | 'oauth2-refresh-token'
+  | 'samlp'
+  | 'wsfed'
+  | 'wstrust-usernamemixed'
+  | 'delegation'
+  | 'redirect-callback';
+
+export type ContextAuthenticationMethodName = 'federated'
+  | 'pwd'
+  | 'sms'
+  | 'email'
+  | 'mfa';
+
+type ContextAuthenticationMethod = {
+  name: ContextAuthenticationMethodName,
+  timestamp: number
 }
 
 /**
@@ -25,25 +37,64 @@ const enum ContextProtocol {
  * @link https://auth0.com/docs/rules/references/context-object
  */
 interface Context {
+  tenant: string,
   clientID: string,
+  clientName: string,
+  clientMetadata: MetaData,
+  connectionID: string,
+  connection: string,
+  connectionStrategy: string,
+  connectionOptions: {
+    tenant_domain?: string,
+    domain_aliases?: readonly string[]
+  },
+  connectionMetadata: MetaData,
+  samlConfiguration: object,
   protocol: ContextProtocol,
+  stats: object,
+  sso: {
+    with_auth0: boolean,
+    with_dbconn: boolean,
+    current_clients?: readonly string[]
+  },
+  accessToken: {
+    scope?: readonly string[]
+  },
+  idToken: object,
+  original_protocol?: string,
+  multifactor?: object,
   sessionID: string,
+  authentication: {
+    methods: readonly ContextAuthenticationMethod[]
+  },
+  primaryUser?: string,
   request: {
-    hostname: string,
-    ip: string,
-    query: string,
     userAgent: string,
+    ip: string,
+    hostname: string,
+    query: {
+      [key: string]: string
+    },
+    body: object,
     geoip: {
-      city_name: string,
-      continent_code: string,
-      country_code3: string,
       country_code: string,
+      country_code3: string,
       country_name: string,
-      latitude: string,
-      longitude: string,
+      city_name: string,
+      latitude: number,
+      longitude: number,
       time_zone: string,
+      continent_code: string,
     }
-  }
+  },
+  authorization: { roles: readonly string[] }
+}
+
+type UserIdentity = {
+  connection: string,
+  isSocial: boolean,
+  provider: string,
+  user_id: string
 }
 
 /**
@@ -51,19 +102,25 @@ interface Context {
  * @link https://auth0.com/docs/rules/references/user-object
  */
 interface User {
-  app_metadata: object,
+  app_metadata?: MetaData,
+  blocked?: boolean,
   created_at: Date,
   email: string,
-  last_ip: string,
-  last_login: Date,
-  logins_count: number,
-  last_password_reset: Date,
+  email_verified?: boolean,
+  identities: readonly UserIdentity[]
+  multifactor?: readonly string[],
+  family_name?: string,
+  given_name?: string,
   name: string,
-  password_set_date: Date,
+  nickname: string,
+  last_password_reset?: Date,
+  phone_number?: string,
+  phone_verified?: boolean,
+  picture: string,
   updated_at: Date,
-  username: string,
   user_id: string,
-  user_metadata: object
+  user_metadata: MetaData
+  username?: string,
 }
 
 /**
