@@ -1,0 +1,57 @@
+version: 2.1
+
+executors:
+  # Note that these are the public node images, not our wrapped ones
+  node-10:
+    docker:
+      - image: node:10
+  node-12:
+    docker:
+      - image: node:12
+
+jobs:
+  test:
+    parameters:
+      executor:
+        type: executor
+    executor: << parameters.executor >>
+    steps:
+      - add_ssh_keys
+      - checkout
+      - run: npm install
+      - run: npm run build
+      - run: npm run test
+  publish:
+    executor: node-12
+    environment:
+      npm_config_ignore_scripts: true
+    steps:
+      - attach_workspace:
+          at: .
+      - run: echo '//npm.pkg.github.com/:_authToken=${GPR_TOKEN}' > ~/.npmrc
+      - run: npm version --no-git-tag-version $CIRCLE_TAG
+      - run: npm publish
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test:
+          name: 'test-10'
+          executor: node-10
+      - test:
+          name: 'test-12'
+          executor: node-12
+          post-steps:
+            - persist_to_workspace:
+                root: .
+                paths: '*'
+      - publish:
+          context: package-publisher
+          filters:
+            tags:
+              only: /^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/
+            branches:
+              ignore: /.*/
+          requires:
+            - test-10
+            - test-12
