@@ -1,5 +1,5 @@
 {
-  "name": "@precognitive/nodejs-decision-ai",
+  "name": "@precognitive/decision-ai-sdk",
   "version": "1.0.0",
   "description": "Node SDK for integrating the Precognitive Decision-AI APIs with Node based applications and tools.",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com//Precognitive/nodejs-decision-ai.git"
+    "url": "https://github.com/Precognitive/nodejs-decision-ai.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
@@ -38,7 +38,7 @@
   },
   "jest": {
     "coverageDirectory": "<rootDir>/coverage",
-    "collectCoverage": false,
+    "collectCoverage": true,
     "coverageThreshold": {
       "global": {
         "branches": 100,
