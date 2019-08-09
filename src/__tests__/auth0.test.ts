@@ -144,7 +144,7 @@ describe('decision', () => {
   it('throws error on http failure', async () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);
-    fetchMock.postOnce(url, { status: 500, body: JSON.stringify({ code: 'failed---', message: 'Failed' }) });
+    fetchMock.postOnce(url, { status: 500, body: JSON.stringify({ code: 'failed', message: 'Failed' }) });
     await expect(auth0.decision(defaultOptions.user, defaultOptions.context)).rejects.toBeInstanceOf(HttpError);
     expect(fetchMock.done()).toEqual(true);
   });
@@ -479,7 +479,7 @@ it('uses custom logger', async () => {
       _custom: {
         auth0: {
           user: {
-            updated: updated.toISOString()
+            // updated: updated.toISOString()
           }
         }
       },
