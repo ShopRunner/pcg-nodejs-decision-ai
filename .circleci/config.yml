@@ -23,8 +23,13 @@ jobs:
       - checkout
       - run: npm install
       - run: npm run build
-      - run: npm run test
+      - run:
+          command: npm test -- --runInBand --reporters=default --reporters=jest-junit
+          environment:
+            JEST_JUNIT_OUTPUT: "reports/jest-junit/results.xml"
       - codecov/upload
+      - store_test_results:
+          path: test-results
 
   publish:
     executor: node-12

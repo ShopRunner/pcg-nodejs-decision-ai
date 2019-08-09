@@ -37,6 +37,10 @@
     "node-fetch": "^2.3.0"
   },
   "jest": {
+    "reporters": [
+      "default",
+      "jest-junit"
+    ],
     "coverageDirectory": "<rootDir>/coverage",
     "collectCoverage": true,
     "coverageThreshold": {
