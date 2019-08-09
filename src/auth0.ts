@@ -103,7 +103,7 @@ class Auth0 {
       signals: response.signals || ['failed_to_decision'],
       score: response.score || 0,
       confidence: response.confidence || 0,
-      token: response.token || 'unknown'
+      tokenId: response.tokenId || 'unknown'
     };
   }
 

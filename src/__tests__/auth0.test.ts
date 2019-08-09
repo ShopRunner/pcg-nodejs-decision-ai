@@ -180,7 +180,7 @@ describe('authFailure', () => {
       confidence: 0,
       score: 0,
       signals: ['failed_to_decision'],
-      token: 'unknown'
+      tokenId: 'unknown'
     });
     expect(fetchMock.done()).toEqual(true);
   });

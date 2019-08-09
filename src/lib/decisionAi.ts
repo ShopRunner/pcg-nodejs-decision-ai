@@ -35,7 +35,7 @@ interface CognitionResponse {
   score: number,
   confidence: number,
   decision: DecisionStatus,
-  token: string,
+  tokenId: string,
   signals: Array<string>
 }
 
