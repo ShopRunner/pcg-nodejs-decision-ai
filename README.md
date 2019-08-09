@@ -1,12 +1,14 @@
 # Decision-AI Node.js SDK
 
 [![CircleCI](https://circleci.com/gh/Precognitive/nodejs-decision-ai/tree/master.svg?style=svg)](https://circleci.com/gh/Precognitive/nodejs-decision-ai/tree/master)
+[![codecov](https://codecov.io/gh/Precognitive/nodejs-decision-ai/branch/master/graph/badge.svg)](https://codecov.io/gh/Precognitive/nodejs-decision-ai)
 
 Node SDK for integrating the Precognitive Decision-AI APIs with Node based applications and tools.
 
 ## Login
 
-You can use the SDK to make calls to our Login API. This API is used to prevent Account Takeover fraud
+You can use the SDK to make calls to our Login API. This API is used to prevent Account Takeover fraud.
+To learn more about the API call use the link below.
 
 [Docs Link](https://developers.precognitive.io/#operation//decision/login)
 
@@ -52,16 +54,18 @@ async function auth(req): Promise<void> {
 
 ## Auth0 Integration
 
-Auth0 provides a universal authentication & authorization platform for web, mobile and legacy applications. Out of the box
-Auth0 provides a sandbox where ad hoc code can be executed that Precognitive utilizes to integrate it's Account-Takeover Fraud prevention tool.
+Auth0 provides a universal authentication & authorization platform for web and mobile applications. Out of the box
+Auth0 provides a sandbox (rules) where ad hoc JavaScript code can be executed. We provide an npm package that can be utilized
+in these rules to to integrate our Account-Takeover Fraud prevention API.
 
 ### Logical Overview
 
 Precognitive's API returns a decision of "allow", "review" or "reject", amongst other data points. An error will (should) 
 be thrown if the authentication is to be prevented (usually a "reject"). The error will be a custom `PrecognitiveError` that 
 will have a property called `isFraud`. This will return true if Precognitive considers the login to be fraudulent.
+In addition, methods are provided to handle directly hitting our API and the authentication failure case.
 
-Follow the steps below 
+Follow the steps below:
 
 ##### 1a. AutoDecision Rule (Preferred installation)
 
@@ -73,6 +77,8 @@ The Decision Rule allows the developer to access the direct response, either to 
 Precognitive decision.
 
 ##### 2. AuthFailure Rule
+
+The Auth Failure rule is used 
 
 ##### 3. Configuration
 
