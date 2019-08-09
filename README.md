@@ -85,7 +85,7 @@ The Auth Failure rule is used
 The following configuration values are required to be accessible in the Rule sandbox. These values will be provided by your account
 manager or technical contact.
  
-* PRECOGNITIVE_API_KEY - API Key is used to tie a request to an application
+* PRECOGNITIVE_APP_ID - AppId is used to tie a request to an application
 * PRECOGNITIVE_USERNAME - UserName is used for Basic-Auth 
 * PRECOGNITIVE_PASSWORD - Password is used for Basic-Auth
 
