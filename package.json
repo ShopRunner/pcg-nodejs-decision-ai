@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.123",
-    "@types/node": "^8.10.45",
+    "@types/node": "^12.7.1",
     "@types/node-fetch": "^2.3.2",
     "fetch-mock": "^7.3.1",
     "jest": "^24.7.1",
@@ -32,9 +32,10 @@
     "jest-mock-console": "^0.4.2",
     "lodash": "^4.17.15",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.4.3"
+    "typescript": "^3.5.3"
   },
   "dependencies": {
+    "@types/typescript": "^2.0.0",
     "node-fetch": "^2.3.0"
   },
   "jest": {
