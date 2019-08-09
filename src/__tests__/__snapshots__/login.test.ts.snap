@@ -7,7 +7,7 @@ Object {
       "REQUEST BODY - {\\"dateTime\\":\\"2019-01-01T00:00:00.000Z\\",\\"eventId\\":\\"123456789\\",\\"ipAddress\\":\\"127.0.0.1\\",\\"login\\":{\\"authenticationType\\":\\"password\\",\\"channel\\":\\"web\\",\\"passwordUpdateTime\\":\\"2019-01-01T00:00:00.000Z\\",\\"status\\":\\"success\\",\\"usedCaptcha\\":false,\\"userId\\":\\"34294892831981\\"},\\"apiKey\\":\\"kasf8w-afsafs-1asffw\\"}",
     ],
     Array [
-      "RESPONSE BODY - {\\"decision\\":\\"allow\\",\\"score\\":50,\\"confidence\\":40,\\"tokenId\\":\\"4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc\\",\\"signals\\":[\\"test\\",\\"test2\\"]}",
+      "RESPONSE BODY - {\\"decision\\":\\"allow\\",\\"score\\":50,\\"confidence\\":40,\\"token\\":\\"4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc\\",\\"signals\\":[\\"test\\",\\"test2\\"]}",
     ],
   ],
   "error": Array [],

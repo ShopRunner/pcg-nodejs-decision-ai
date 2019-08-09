@@ -2,8 +2,16 @@ import fetchMockModule from 'fetch-mock';
 import _ from 'lodash';
 import fetchMock from '../__mocks__/node-fetch';
 import { Auth0, DecisionError, HttpError } from '../';
-import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel, CognitionRequest, LoginStatus } from '../lib/decisionAi';
-import { User, Context } from '../lib/auth0';
+import {
+  ApiVersion,
+  AuthenticationType,
+  Channel,
+  CognitionRequest,
+  CognitionResponse,
+  DecisionStatus,
+  LoginStatus
+} from '../lib/decisionAi';
+import { Context, User } from '../lib/auth0';
 import { RequestInit } from 'node-fetch';
 import { getPasswordLogin } from './stubs/auth0';
 
@@ -15,12 +23,12 @@ function getBaseResponse (decision: DecisionStatus, score = _.random(-200, 200),
     decision,
     score,
     confidence,
-    tokenId: '4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc',
+    token: '4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc',
     signals: [
       'test',
       'test2'
     ]
-  }
+  };
 }
 
 const config = {
@@ -33,12 +41,13 @@ const config = {
 };
 const basicAuth = 'Basic dGVzdDp0ZXN0LXB3';
 
-const updated = new Date();
+const updated = new Date('2019-05-05');
 
 interface Login {
   user: User;
   context: Context;
 }
+
 function getOptions (): Login {
   const passwordLogin = getPasswordLogin();
   return {
@@ -50,7 +59,7 @@ function getOptions (): Login {
   };
 }
 
-function getDecisionRecord ({ context, user }: Login): CognitionRequest {
+function getDecisionRecord ({ context, user }: Login, status: LoginStatus = LoginStatus.success): CognitionRequest {
   return {
     apiKey: config.apiKey,
     dateTime: expect.stringMatching(isoDateRegexp),
@@ -59,7 +68,7 @@ function getDecisionRecord ({ context, user }: Login): CognitionRequest {
     login: {
       authenticationType: AuthenticationType.password,
       channel: Channel.web,
-      status: LoginStatus.success,
+      status: status,
       usedCaptcha: false,
       usedRememberMe: false,
       userId: user.user_id,
@@ -97,10 +106,10 @@ function getDecisionRecord ({ context, user }: Login): CognitionRequest {
   };
 }
 
-function assertOneCall(calls: fetchMockModule.MockCall[], body: any) {
+function assertOneCall (calls: fetchMockModule.MockCall[], body: any) {
   expect(calls.length).toEqual(1);
 
-  // the fetch mock api is asinine
+  // the fetch mock api is a bit unorthodox
   // it adds a 'request' property to the array that we don't care about
   // this strips the property and turns it into a real array.
   const request = [...calls[0]] as typeof calls[0];
@@ -135,7 +144,7 @@ describe('decision', () => {
   it('throws error on http failure', async () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);
-    fetchMock.postOnce(url, {status: 500, body: JSON.stringify({code: 'failed', message: 'Failed'})});
+    fetchMock.postOnce(url, { status: 500, body: JSON.stringify({ code: 'failed', message: 'Failed' }) });
     await expect(auth0.decision(defaultOptions.user, defaultOptions.context)).rejects.toBeInstanceOf(HttpError);
     expect(fetchMock.done()).toEqual(true);
   });
@@ -144,13 +153,51 @@ describe('decision', () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);
     const err = new Error('Mock');
-    fetchMock.postOnce(url, {throws: err});
+    fetchMock.postOnce(url, { throws: err });
     await expect(auth0.decision(defaultOptions.user, defaultOptions.context)).rejects.toBe(err);
     expect(fetchMock.done()).toEqual(true);
   });
 });
 
-describe('autodecision', () => {
+describe('authFailure', () => {
+  it('always rejects', async () => {
+    const login = getOptions();
+    const auth0 = new Auth0(config);
+    const response = getBaseResponse(DecisionStatus.reject);
+    fetchMock.postOnce(url, response);
+    const actual = await auth0.authFailure(login.user, login.context);
+    expect(actual).toEqual(response);
+    expect(fetchMock.done()).toEqual(true);
+  });
+
+  it('handles defaults', async () => {
+    const login = getOptions();
+    const auth0 = new Auth0(config);
+    fetchMock.postOnce(url, {});
+    const actual = await auth0.authFailure(login.user, login.context);
+    expect(actual).toEqual({
+      decision: DecisionStatus.reject,
+      confidence: 0,
+      score: 0,
+      signals: ['failed_to_decision'],
+      token: 'unknown'
+    });
+    expect(fetchMock.done()).toEqual(true);
+  });
+
+  it(`always passes the ${LoginStatus.failure} status`, async () => {
+    const login = getOptions();
+    const auth0 = new Auth0(config);
+    const response = getBaseResponse(DecisionStatus.reject);
+    fetchMock.postOnce(url, response);
+    const actual = await auth0.authFailure(login.user, login.context);
+    expect(actual).toEqual(response);
+    assertOneCall(fetchMock.calls(), getDecisionRecord(login, LoginStatus.failure));
+    expect(fetchMock.done()).toEqual(true);
+  });
+});
+
+describe('autoDecision', () => {
   it('disallows if the response is `reject`', async () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);
@@ -208,7 +255,7 @@ describe('autodecision', () => {
   it('allows on http failure', async () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);
-    fetchMock.postOnce(url, {status: 500, body: JSON.stringify({code: 'failed', message: 'Failed'})});
+    fetchMock.postOnce(url, { status: 500, body: JSON.stringify({ code: 'failed', message: 'Failed' }) });
     await new Promise((resolve, reject) => {
       auth0.autoDecision(defaultOptions.user, defaultOptions.context, (err) => {
         if (err) {
@@ -225,7 +272,7 @@ describe('autodecision', () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);
     const err = new Error('Mock');
-    fetchMock.postOnce(url, {throws: err});
+    fetchMock.postOnce(url, { throws: err });
     await new Promise((resolve, reject) => {
       auth0.autoDecision(defaultOptions.user, defaultOptions.context, (err) => {
         if (err) {
@@ -242,7 +289,7 @@ describe('autodecision', () => {
     const defaultOptions = getOptions();
     const auth0 = new Auth0(config);
     const err = new Error('Mock');
-    fetchMock.postOnce(url, {throws: err});
+    fetchMock.postOnce(url, { throws: err });
     await expect(new Promise((resolve, reject) => {
       auth0.autoDecision(defaultOptions.user, defaultOptions.context, (err) => {
         if (err) {
@@ -275,11 +322,12 @@ describe('autodecision', () => {
     });
     // only assertion is code coverage
     expect(fetchMock.done()).toEqual(true);
-  })
+  });
 });
 
 describe('context protocol => authentication type', () => {
   const timestamp = Date.now();
+
   async function testAuthType (authType: AuthenticationType | undefined, transformInput: (login: Login) => Login) {
     const data = transformInput(getOptions());
     const auth0 = new Auth0(config);
@@ -294,7 +342,7 @@ describe('context protocol => authentication type', () => {
     } else {
       delete expectedBody.login.authenticationType; // gets removed by JSON stringify
     }
-    assertOneCall(fetchMock.calls(), expectedBody);;
+    assertOneCall(fetchMock.calls(), expectedBody);
     expect(fetchMock.done()).toEqual(true);
   }
 
@@ -317,7 +365,7 @@ describe('context protocol => authentication type', () => {
       l.context.authentication.methods = [{ timestamp, name: 'federated' }];
       l.user.identities = [];
       return l;
-    })
+    });
   });
 
   it('transforms social sign on from identity', async () => {
@@ -351,7 +399,7 @@ describe('context protocol => authentication type', () => {
       l.context.sso.current_clients = ['foo'];
       return l;
     });
-  })
+  });
 
   it('transforms password', async () => {
     await testAuthType(AuthenticationType.password, (l) => {
@@ -394,6 +442,26 @@ it('allows field override', async () => {
   expect(fetchMock.done()).toEqual(true);
 });
 
+it('removes PII data in Privacy Mode', async () => {
+  const defaultOptions = getOptions();
+  const auth0 = new Auth0(config);
+  const response = getBaseResponse(DecisionStatus.allow);
+  fetchMock.postOnce(url, response);
+  const actual = await auth0.decision(defaultOptions.user, defaultOptions.context, { privacyMode: true });
+  expect(actual).toEqual(response);
+
+  const expectedBody = getDecisionRecord(defaultOptions);
+  expectedBody._custom.auth0.user = _.omit(expectedBody._custom.auth0.user, [
+    'fullName',
+    'lastName',
+    'firstName',
+    'email',
+    'phoneNumber'
+  ]);
+  assertOneCall(fetchMock.calls(), expectedBody);
+  expect(fetchMock.done()).toEqual(true);
+});
+
 it('uses custom logger', async () => {
   const logger = {
     debug: jest.fn(),
@@ -402,12 +470,19 @@ it('uses custom logger', async () => {
     error: jest.fn()
   };
   const defaultOptions = getOptions();
-  const auth0 = new Auth0({...config, logger});
+  const auth0 = new Auth0({ ...config, logger });
   const response = getBaseResponse(DecisionStatus.allow, 50, 40);
   fetchMock.postOnce(url, response);
   await auth0.decision(defaultOptions.user, defaultOptions.context, {
     overrides: {
       dateTime: new Date('2019-01-01'),
+      _custom: {
+        auth0: {
+          user: {
+            updated: updated.toISOString()
+          }
+        }
+      },
       login: {
         passwordUpdateTime: new Date('2019-01-01')
       }

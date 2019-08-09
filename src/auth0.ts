@@ -37,6 +37,7 @@ interface DecisionOptions {
   defaultResponse?: DecisionStatus;
   overrides?: CognitionRequestOverrides;
   timeout?: number;
+  privacyMode?: boolean;
 }
 
 class Auth0 {
@@ -44,7 +45,7 @@ class Auth0 {
   private readonly _getUserIdOption?: (user: User, context: Context) => string;
   private readonly _logger: Logger;
 
-  constructor(options: ConstructorOptions) {
+  constructor (options: ConstructorOptions) {
     if (options.logger) {
       this._logger = options.logger;
     } else {
@@ -63,7 +64,7 @@ class Auth0 {
    * @description Sends login data for scoring and returns the result. `Auth0.isGoodLogin` may be used to determine if the login
    * is good. If there is a network outage, auth failure, or any other ip/tcp/http level error, it WILL return a rejected promise.
    */
-  public async decision(user: User, context: Context, options: DecisionOptions = {}): Promise<CognitionResponse> {
+  public async decision (user: User, context: Context, options: DecisionOptions = {}): Promise<CognitionResponse> {
     const reqBody = this._buildBody(user, context, options);
     return this._base.decision(reqBody, options);
   }
@@ -73,7 +74,7 @@ class Auth0 {
    * If there is a network outage, auth failure, or any other ip/tcp/http level error, it will log it and move on. It will NOT
    * prevent the login in this case.
    */
-  public autoDecision(user: User, context: Context, callback: Callback, options: DecisionOptions = {}): void {
+  public autoDecision (user: User, context: Context, callback: Callback, options: DecisionOptions = {}): void {
     try {
       const reqBody = this._buildBody(user, context, options);
       this._base.autoDecision(reqBody, options).then(() => {
@@ -87,19 +88,30 @@ class Auth0 {
     }
   }
 
-  public static isGoodLogin(decisionResponse: CognitionResponse): boolean {
+  public async authFailure (user: User, context: Context, options: DecisionOptions = {}): Promise<CognitionResponse> {
+    const response = await this.decision(user, context, {
+      ...options,
+      overrides: _.merge(options.overrides, {
+        login: {
+          status: LoginStatus.failure
+        }
+      })
+    });
+
+    return {
+      decision: DecisionStatus.reject,
+      signals: response.signals || ['failed_to_decision'],
+      score: response.score || 0,
+      confidence: response.confidence || 0,
+      token: response.token || 'unknown'
+    };
+  }
+
+  public static isGoodLogin (decisionResponse: CognitionResponse): boolean {
     return Login.isGoodLogin(decisionResponse);
   }
 
-  private _getUserId(user: User, context: Context): string {
-    if (this._getUserIdOption) {
-      return this._getUserIdOption(user, context);
-    } else {
-      return user.user_id;
-    }
-  }
-
-  private _getAuthenticationType(user: User, context: Context): AuthenticationType | undefined {
+  private _getAuthenticationType (user: User, context: Context): AuthenticationType | undefined {
     const latestAuthMethod = _.last(_.sortBy(context.authentication.methods, 'timestamp'));
 
     if (typeof latestAuthMethod === 'undefined') {
@@ -107,7 +119,7 @@ class Auth0 {
     } else if (latestAuthMethod.name === 'mfa') {
       return AuthenticationType.two_factor;
     } else if (latestAuthMethod.name === 'federated') {
-      const identity = _.find(user.identities, {connection: context.connection});
+      const identity = _.find(user.identities, { connection: context.connection });
       // check social VS sso
       if (typeof identity === 'undefined' || identity.isSocial) {
         return AuthenticationType.social_sign_on;
@@ -122,12 +134,8 @@ class Auth0 {
     }
   }
 
-  private _getChannel(user: User, context: Context): Channel {
-    return Channel.web;
-  }
-
-  private _buildBody(user: User, context: Context, options: DecisionOptions): CognitionInput {
-    const request: CognitionInput = {
+  private _buildBody (user: User, context: Context, options: DecisionOptions): CognitionInput {
+    let request: CognitionInput = {
       _custom: {
         // Include Auth0 Specific data points
         auth0: {
@@ -156,8 +164,8 @@ class Auth0 {
       eventId: _.get(context.request.query, 'cognition_event_id'),
       ipAddress: context.request.ip,
       login: {
-        userId: this._getUserId(user, context),
-        channel: this._getChannel(user, context),
+        userId: user.user_id,
+        channel: Channel.web,
         usedCaptcha: false,
         usedRememberMe: false,
         authenticationType: this._getAuthenticationType(user, context),
@@ -165,7 +173,18 @@ class Auth0 {
         passwordUpdateTime: user.last_password_reset
       }
     };
-    return _.merge(request, _.get(options, 'overrides', {}));
+
+    if (options.privacyMode) {
+      request = _.omit(request, [
+        'fullName',
+        'lastName',
+        'firstName',
+        'email',
+        'phoneNumber'
+      ].map((field) => `_custom.auth0.user.${field}`)) as CognitionInput;
+    }
+
+    return _.merge(request, options.overrides);
   }
 }
 

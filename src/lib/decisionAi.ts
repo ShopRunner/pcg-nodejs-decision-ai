@@ -35,7 +35,7 @@ interface CognitionResponse {
   score: number,
   confidence: number,
   decision: DecisionStatus,
-  tokenId: string,
+  token: string,
   signals: Array<string>
 }
 
@@ -53,7 +53,7 @@ interface CognitionInput {
     passwordUpdateTime?: Date;
     userNameUpdateTime?: Date;
   };
-  _custom: any;
+  _custom?: any;
 }
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

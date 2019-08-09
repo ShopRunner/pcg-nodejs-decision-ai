@@ -1,7 +1,7 @@
 {
   "name": "@precognitive/nodejs-decision-ai",
   "version": "1.0.0",
-  "description": "",
+  "description": "Node SDK for integrating the Precognitive Decision-AI APIs with Node based applications and tools.",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -14,8 +14,12 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "precognitive",
+    "node",
+    "auth0"
+  ],
+  "author": "@precognitive",
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^24.0.11",
@@ -25,7 +29,7 @@
     "fetch-mock": "^7.3.1",
     "jest": "^24.7.1",
     "jest-mock-console": "^0.4.2",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.15",
     "ts-jest": "^24.0.2",
     "typescript": "^3.4.3"
   },

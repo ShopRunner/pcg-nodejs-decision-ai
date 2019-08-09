@@ -2,7 +2,15 @@ import fetchMockModule from 'fetch-mock';
 import _ from 'lodash';
 import fetchMock from '../__mocks__/node-fetch';
 import { Login, DecisionError, HttpError } from '../';
-import { ApiVersion, CognitionResponse, DecisionStatus, AuthenticationType, Channel, LoginStatus, CognitionInput } from '../lib/decisionAi';
+import {
+  ApiVersion,
+  CognitionResponse,
+  DecisionStatus,
+  AuthenticationType,
+  Channel,
+  LoginStatus,
+  CognitionInput
+} from '../lib/decisionAi';
 import { RequestInit } from 'node-fetch';
 
 const date = new Date();
@@ -15,12 +23,12 @@ function getBaseResponse (decision: DecisionStatus, score = _.random(-200, 200),
     decision,
     score,
     confidence,
-    tokenId: '4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc',
+    token: '4610b4ba-a1e0-4f8c-8cc3-f5d9bd2214cc',
     signals: [
       'test',
       'test2'
     ]
-  }
+  };
 }
 
 const config = {
@@ -65,7 +73,7 @@ function getDecisionRecord () {
   };
 }
 
-function assertOneCall(calls: fetchMockModule.MockCall[], body: any) {
+function assertOneCall (calls: fetchMockModule.MockCall[], body: any) {
   expect(calls.length).toEqual(1);
 
   // the fetch mock api is asinine
@@ -104,7 +112,7 @@ describe('decision', () => {
   it('throws error on http failure', async () => {
     const defaultOptions = getOptions();
     const login = new Login(config);
-    fetchMock.postOnce(url, {status: 500, body: JSON.stringify({code: 'failed', message: 'Failed'})});
+    fetchMock.postOnce(url, { status: 500, body: JSON.stringify({ code: 'failed', message: 'Failed' }) });
     await expect(login.decision(defaultOptions)).rejects.toBeInstanceOf(HttpError);
     expect(fetchMock.done()).toEqual(true);
   });
@@ -113,7 +121,7 @@ describe('decision', () => {
     const defaultOptions = getOptions();
     const login = new Login(config);
     const err = new Error('Mock');
-    fetchMock.postOnce(url, {throws: err});
+    fetchMock.postOnce(url, { throws: err });
     await expect(login.decision(defaultOptions)).rejects.toBe(err);
     expect(fetchMock.done()).toEqual(true);
   });
@@ -156,7 +164,7 @@ describe('autodecision', () => {
   it('allows on http failure', async () => {
     const defaultOptions = getOptions();
     const login = new Login(config);
-    fetchMock.postOnce(url, {status: 500, body: JSON.stringify({code: 'failed', message: 'Failed'})});
+    fetchMock.postOnce(url, { status: 500, body: JSON.stringify({ code: 'failed', message: 'Failed' }) });
     await login.autoDecision(defaultOptions);
     expect(fetchMock.done()).toEqual(true);
   });
@@ -165,7 +173,7 @@ describe('autodecision', () => {
     const defaultOptions = getOptions();
     const login = new Login(config);
     const err = new Error('Mock');
-    fetchMock.postOnce(url, {throws: err});
+    fetchMock.postOnce(url, { throws: err });
     await login.autoDecision(defaultOptions);
     expect(fetchMock.done()).toEqual(true);
   });
@@ -174,7 +182,7 @@ describe('autodecision', () => {
     const defaultOptions = getOptions();
     const login = new Login(config);
     const err = new Error('Mock');
-    fetchMock.postOnce(url, {throws: err});
+    fetchMock.postOnce(url, { throws: err });
     await expect(login.autoDecision(defaultOptions, { defaultResponse: DecisionStatus.reject })).rejects.toBeInstanceOf(DecisionError);
     expect(fetchMock.done()).toEqual(true);
   });
@@ -204,7 +212,7 @@ it('uses custom logger', async () => {
   const defaultOptions = getOptions();
   defaultOptions.dateTime = new Date('2019-01-01');
   defaultOptions.login.passwordUpdateTime = defaultOptions.dateTime;
-  const login = new Login({...config, logger});
+  const login = new Login({ ...config, logger });
   const response = getBaseResponse(DecisionStatus.allow, 50, 40);
   fetchMock.postOnce(url, response);
   await login.decision(defaultOptions);
